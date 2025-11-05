@@ -1,0 +1,59 @@
+mkdir -p echo-touch/.github/workflows
+mkdir -p echo-touch/mobile/assets/tones
+mkdir -p echo-touch/mobile/components
+mkdir -p echo-touch/server/app
+mkdir -p echo-touch/server/analysis
+mkdir -p echo-touch/store
+# Echo Touch
+
+Echo Touch is a privacy-first sexual wellness app for women that uses physiological analytics (heart rate, breathing patterns, HRV), guided breathwork, personalized audio frequencies, and haptic/vibrator integration to help users achieve sexual satisfaction.
+
+This repo contains:
+- mobile/ — Expo-managed React Native app prototype
+- server/ — FastAPI server and ML prototype for signal analytics
+- docs (privacy, architecture, store, license)
+- GitHub Actions CI for basic checks
+
+This initial version is a proof of concept. Do not use in production without safety, legal, and clinical review.
+
+Quickstart (mobile)
+1. Install expo CLI: `npm install -g expo-cli`
+2. cd mobile
+3. npm install
+4. expo start
+
+Quickstart (server)
+1. python 3.10+ recommended
+2. cd server
+3. pip install -r requirements.txt
+4. uvicorn app.main:app --reload
+
+# Push to GitHub
+1. git init
+2. git remote add origin git@github.com:kttydevineee/echo-touch.git
+3. git checkout -b echo-touch/initial
+4. git add .
+5. git commit -m "initial: echo-touch prototype"
+6. git push -u origin echo-touch/initial
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Expo
+.expo/
+.expo-shared/
+
+# Python
+__pycache__/
+*.pyc
+env/
+venv/
+.env
+
+# Mac
+.DS_Store
+
+# Build artifacts
+build/
+dist/
