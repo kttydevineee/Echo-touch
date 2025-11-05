@@ -217,4 +217,171 @@ export default function BreathCoach() {
         soundRef.current.unloadAsync();
       }
     };*
-
+import React from "react";
+import { View, Text, Button, StyleSheet } from "react-native";
+import { Audio } from "expo-av";
+
+/**
+ * Simple breath coach: plays timed inhale/exhale cues and a carrier tone.
+ * Use public-domain sample audio placed in mobile/assets/tones/
+ */
+
+export default function BreathCoach() {
+  const [running, setRunning] = React.useState(false);
+  const soundRef = React.useRef<Audio.Sound | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (soundRef.current) {
+        soundRef.current.unloadAsync();
+      }
+    };
+  }, []);
+
+  async function start() {
+    setRunning(true);
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require("../assets/tones/alpha_tone_440.wav")
+      );
+      soundRef.current = sound;
+      await sound.setIsLoopingAsync(true);
+      await sound.playAsync();
+    } catch (e) {
+      console.warn("Audio start error", e);
+    }
+  }
+
+  async function stop() {
+    setRunning(false);
+    if (soundRef.current) {
+      await soundRef.current.stopAsync();
+      await soundRef.current.unloadAsync();
+      soundRef.current = null;
+    }
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Breath Coach</Text>
+      <Text style={styles.desc}>
+        Follow inhale/exhale cues. Audio frequencies help entrain focus.
+      </Text>
+      <View style={{ marginTop: 10 }}>
+        <Button title={running ? "Stop" : "Start"} onPress={running ? stop : start} />
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { marginTop: 16, padding: 12, borderWidth: 1, borderRadius: 8, borderColor: "#eee" },
+  title: { fontWeight: "600", fontSize: 16 },
+  desc: { color: "#666", marginTop: 6 }
+});
+Place public-domain sample audio files here.
+
+Suggested files (public domain / CC0):
+- alpha_tone_440.wav — simple carrier tone
+- binaural_6hz_440hz.wav — binaural beat example (ensure usage is safe and non-triggering)
+
+NOTE: Do NOT include copyrighted music without license. Replace placeholder audio in code if using different filenames.
+fastapi
+uvicorn[standard]
+numpy
+scipy
+scikit-learn
+pydantic
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI(title="Echo Touch Server (dev)")
+
+class HealthSummary(BaseModel):
+    user_id: str
+    session_id: str
+    hr_mean: float
+    hrv_sd: float
+    br_mean: float
+    tags: list[str] = []
+
+@app.get("/")
+def read_root():
+    return {"message": "Echo Touch server prototype"}
+
+@app.post("/summary")
+def save_summary(s: HealthSummary):
+    # This endpoint is a placeholder: in production, authenticate and validate.
+    # Default behavior: accept and return stored summary id.
+    return {"status": "ok", "summary": s}
+    """
+Simple prototype: preprocess heart rate time-series and breathing intervals,
+extract features and run a classifier/regressor to estimate relaxation/arousal readiness.
+
+This is a demo. Replace with real training data and rigorous validation.
+"""
+import numpy as np
+import scipy.signal as sps
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+
+def extract_features(hr_series, breath_series):
+    feats = {}
+    feats['hr_mean'] = np.mean(hr_series)
+    feats['hr_std'] = np.std(hr_series)
+    diffs = np.diff(hr_series)
+    feats['hrv_sd'] = np.std(diffs)
+    feats['br_mean'] = np.mean(breath_series)
+    feats['br_std'] = np.std(breath_series)
+    return np.array(list(feats.values()))
+
+def demo():
+    n = 200
+    X = []
+    y = []
+    rng = np.random.RandomState(0)
+    for i in range(n):
+        label = rng.choice([0,1])  # 0=relaxed, 1=arousal-ready
+        base_hr = 60 + rng.randn()*3 + (10 if label==1 else 0)
+        hr_series = base_hr + rng.randn(60) * (1.5 if label==1 else 0.8)
+        br = 12 + rng.randn()*1 + (2 if label==1 else 0)
+        breath_series = br + rng.randn(60)*0.5
+        feats = extract_features(hr_series, breath_series)
+        X.append(feats)
+        y.append(label)
+    X = np.vstack(X)
+    y = np.array(y)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
+    clf = RandomForestClassifier(n_estimators=50, random_state=1)
+    clf.fit(X_train, y_train)
+    preds = clf.predict(X_test)
+    print(classification_report(y_test, preds))
+
+if __name__ == "__main__":
+    demo()
+    # Store & Hardware Integration (Echo Touch Vibrator)
+
+- The mobile app includes a placeholder in-app store. Use Stripe for payments; do not include any secrets in repo.
+- Hardware firmware stub: BLE GATT-based API with control and telemetry characteristics. Provide safe intensity enforcement in firmware and an emergency stop.
+
+BLE GATT recommended characteristics (example)
+- Control characteristic (write): {"cmd":"start","pattern":1,"intensity":40}
+- Telemetry (notify): {"battery":87,"temp":35.4}
+- cd echo-touch
+git init
+git add .
+git commit -m "initial: echo-touch prototype"
+git branch -M echo-touch/initial
+# Create repo on GitHub first, then:
+git remote add origin git@github.com:kttydevineee/echo-touch.git
+git push -u origin echo-touch/initial
+# Mobile app
+cd mobile
+npm install
+expo start
+
+# Server
+cd server
+pip install -r requirements.txt
+uvicorn app.main:app --reload
